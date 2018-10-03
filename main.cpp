@@ -145,13 +145,13 @@ struct Node {
 
 struct Compar {
     bool operator() (const Node *x, const Node *y) const {
-        return x->costPath < y->costPath;
+        return x->costPath > y->costPath;
     }
 };
 
 struct HCompar {
     bool operator() (const Node *x, const Node *y) const {
-        return x->hCostPath < y->hCostPath;
+        return x->hCostPath > y->hCostPath;
     }
 };
 
