@@ -4,3 +4,9 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp
+
+HEADERS += \
+    state.h \
+    action.h \
+    node.h \
+    model.h
