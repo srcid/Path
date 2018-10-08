@@ -30,7 +30,7 @@ string stateToString(State c) {
     case lugoj:
         return "Logoj";
     case timisoara:
-        return "Timisora";
+        return "Timisoara";
     case bucharest:
         return "Bucharest";
     case giurgiu:
@@ -75,7 +75,7 @@ State stringToState(string s) {
         return mehadia;
     if(s == "Lugoj" || s == "lugoj")
         return lugoj;
-    if(s == "Timisora" || s == "tamisora")
+    if(s == "Timisoara" || s == "timisoara")
         return timisoara;
     if(s == "Bucharest" || s == "bucharest")
         return bucharest;
@@ -137,7 +137,6 @@ struct Node {
     }
 
     ~Node() {
-//        delete dad;
         delete a;
     }
 
@@ -184,7 +183,11 @@ struct Model {
         stack<Node *> edg;
         vector<State> expl;
 
-        edg.push(new Node(nullptr, boarding, new Action(boarding), 0, 0));
+        edg.push(new Node( nullptr,
+                           boarding,
+                           new Action(boarding),
+                           0,
+                           0)); // the heuristic campus isn't used in this search
 
         while(!edg.empty()) {
             Node *current = edg.top();
@@ -192,7 +195,11 @@ struct Model {
             edg.pop();
 
             for(pair<State, int> each : cities->at(current->s)) {
-                Node *n = new Node(current, each.first, new Action(current->s, each.first), each.second + current->costPath, 0);
+                Node *n = new Node(current,
+                                   each.first,
+                                   new Action(current->s, each.first),
+                                   each.second + current->costPath,
+                                   0); // the heuristic campus isn't used in this search
 
                 if(n->s == unboarding) {
                     return n;
@@ -213,7 +220,11 @@ struct Model {
         queue<Node *> edg;
         vector<State> expl;
 
-        edg.push(new Node(nullptr, boarding, new Action(boarding), 0, 0));
+        edg.push( new Node( nullptr,
+                            boarding,
+                            new Action(boarding),
+                            0,
+                            0)); // the heuristic campus isn't used in this search
 
         while(!edg.empty()) {
             Node * current = edg.front();
@@ -226,7 +237,11 @@ struct Model {
 
             for(pair<State, int> each : cities->at(current->s)) {
                 if(!wasVisited(&expl, each.first)) {
-                    edg.push(new Node(current, each.first, new Action(current->s, each.first), each.second + current->costPath, 0));
+                    edg.push( new Node( current,
+                                        each.first,
+                                        new Action(current->s, each.first),
+                                        each.second + current->costPath,
+                                        0)); // the heuristic campus isn't used in this search
                 }
 
             }
@@ -239,7 +254,11 @@ struct Model {
         priority_queue<Node *, vector<Node *>, Compar > edg;
         vector<State> expl;
 
-        edg.push(new Node(nullptr, boarding, new Action(boarding), 0, 0));
+        edg.push( new Node( nullptr,
+                            boarding,
+                            new Action(boarding),
+                            0,
+                            0));
 
         while(!edg.empty()) {
             Node * current = edg.top();
@@ -252,7 +271,10 @@ struct Model {
 
             for(pair<State, int> each : cities->at(current->s)) {
                 if(!wasVisited(&expl, each.first)) {
-                    edg.push(new Node(current, each.first, new Action(current->s, each.first), each.second + current->costPath, 0));
+                    edg.push( new Node( current,
+                                        each.first,
+                                        new Action(current->s, each.first),
+                                        each.second + current->costPath, 0));
                 }
 
             }
@@ -261,12 +283,16 @@ struct Model {
         return nullptr;
     }
 
-    Node * heuristicSearch() {
+    Node * searchGreedy() {
 
         priority_queue< Node *, vector<Node *>, HCompar> edg;
         vector<State> expl;
 
-        edg.push(new Node(nullptr, boarding, new Action(boarding), 0, sld->at(boarding)));
+        edg.push( new Node( nullptr,
+                            boarding,
+                            new Action(boarding),
+                            0,
+                            sld->at(boarding)));
 
         while(!edg.empty()) {
             Node * current = edg.top();
@@ -279,7 +305,46 @@ struct Model {
 
             for(pair<State, int> each : cities->at(current->s)) {
                 if(!wasVisited(&expl, each.first)) {
-                    edg.push(new Node(current, each.first, new Action(current->s, each.first), each.second + current->costPath, each.second + each.second + sld->at(current->s)));
+                    edg.push( new Node( current,
+                                        each.first,
+                                        new Action(current->s, each.first),
+                                        each.second + current->costPath,
+                                        sld->at(current->s)));
+                }
+
+            }
+        }
+        return nullptr;
+    }
+
+
+    Node * starSearch() {
+
+        priority_queue< Node *, vector<Node *>, HCompar> edg;
+        vector<State> expl;
+
+        edg.push( new Node( nullptr,
+                            boarding,
+                            new Action(boarding),
+                            0,
+                            sld->at(boarding)));
+
+        while(!edg.empty()) {
+            Node * current = edg.top();
+            edg.pop();
+
+            expl.push_back(current->s);
+
+            if(current->s == unboarding)
+                return current;
+
+            for(pair<State, int> each : cities->at(current->s)) {
+                if(!wasVisited(&expl, each.first)) {
+                    edg.push( new Node( current,
+                                        each.first,
+                                        new Action(current->s, each.first),
+                                        each.second + current->costPath,
+                                        each.second + sld->at(current->s)));
                 }
 
             }
@@ -342,7 +407,7 @@ void loadMap(map<State, vector<pair<State, int>>> *cities) {
 }
 
 void loadHashTable(unordered_map<State, int> *sld) {
-    (*sld)[arad] = 360;
+    (*sld)[arad] = 366;
     (*sld)[bucharest] = 0;
     (*sld)[craiova] = 160;
     (*sld)[drobeta] = 242;
@@ -391,7 +456,8 @@ int main(int argc, char const *argv[])
     Node * deapth = model->dfs();
     Node * breadth = model->bfs();
     Node * uniform = model->ucs();
-    Node * heuristic = model->heuristicSearch();
+    Node * star = model->starSearch();
+    Node * greedy = model->searchGreedy();
 
     cout << "DEAPTH-FIRST SEARCH" << endl << endl;
     printPath(deapth);
@@ -399,11 +465,14 @@ int main(int argc, char const *argv[])
     printPath(breadth);
     cout << endl << "MINIMAL COST SEARCH" << endl << endl;
     printPath(uniform);
-    cout << endl << "HEURISTIC SEARCH" << endl << endl;
-    printPath(heuristic);
+    cout << endl << "SEARCH GREEDY OF BETTER CHOICE" << endl << endl;
+    printPath(greedy);
+    cout << endl << "STAR SEARCH" << endl << endl;
+    printPath(star);
 
     delete model;
     delete cities;
+    delete sld;
 
     return 0;
 }
